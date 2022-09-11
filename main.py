@@ -4,8 +4,10 @@ import random
 import numpy as np
 import torch.backends.cudnn as cudnn
 
+import learners
 import dataloaders
 from dataloaders.utils import *
+
 
 seed = 0
 random.seed(seed)
@@ -55,8 +57,8 @@ def run(seed):
 
     # number of transforms per image
     # Use fix-match loss with classifier
-    k = 2
-    ky = 1 # what is ky?? -> k of Transform
+    k = 2 # Append transform image and buffer image
+    ky = 1 # Not append transform for memory buffer
     
     # datasets and dataloaders
     dataroot = 'data'
@@ -82,7 +84,40 @@ def run(seed):
                             download=False, transform=test_transform, l_dist=l_dist, ul_dist=ul_dist,
                             tasks=tasks, seed=seed, rand_split=rand_split, validation=validation, kfolds=repeat)
 
+    # in case tasks reset
     tasks = train_dataset.tasks
+
+    # Prepare the Learner (model)
+    learner_config = {'num_classes': num_classes,
+                      'lr': 0.1,
+                      'ul_batch_size': 128,
+                      'tpr': 0.05,
+                      'oodtpr': 0.005,
+                      'momentum': 0.9,
+                      'weight_decay': 5e-4,
+                      'schedule': [120, 160, 180, 200],
+                      'schedule_type': 'decay',
+                      'model_type': "resnet",
+                      'model_name': "WideResNet_28_2_cifar",
+                      'ood_model_name': 'WideResNet_DC_28_2_cifar',
+                      'out_dim': 100,
+                      'optimizer': 'SGD',
+                      'gpuid': [0],
+                      'pl_flag': True,
+                      'fm_loss': True,
+                      'weight_aux': 1,
+                      'memory': 400,
+                      'distill_loss': 'C',
+                      'co': 1.,
+                      'FT': True,
+                      'DW': True,
+                      'num_labeled_samples': labeled_samples,
+                      'num_unlabeled_samples': unlabeled_task_samples,
+                      'super_flag': l_dist == "super",
+                      'no_unlabeled_data': True
+                      }
+    learner = learners.distillmatch.DistillMatch(learner_config)
+    print(learner.model)
 
 
 if __name__ == '__main__':

@@ -166,6 +166,8 @@ class NormalNN(nn.Module):
         cfg = self.config
 
         # Define the backbone (MLP, LeNet, VGG, ResNet ... etc) of model
+        # model_type : ResNet
+        # ood_model_name : WideResNet_DC_28_2_cifar
         model = models.__dict__[cfg['model_type']].__dict__[cfg['ood_model_name']]()
 
         # Apply network surgery to the backbone
