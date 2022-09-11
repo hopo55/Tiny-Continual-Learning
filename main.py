@@ -117,7 +117,7 @@ def run(seed):
                       'no_unlabeled_data': True
                       }
     learner = learners.distillmatch.DistillMatch(learner_config)
-    print(learner.model)
+    print(learner_config['model_type'])
 
 
 if __name__ == '__main__':
