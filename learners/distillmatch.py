@@ -15,7 +15,7 @@ class DistillMatch(NormalNN):
 
     def __init__(self, learner_config):
 
-        # name of ood detector model
+        # name of ood detector model -> WideResNet_DC_28_2_cifar
         if learner_config['ood_model_name'] == None: learner_config['ood_model_name'] = learner_config['model_name']
 
         # simple init calls
@@ -23,12 +23,12 @@ class DistillMatch(NormalNN):
         self.params = {n: p for n, p in self.model.named_parameters() if p.requires_grad}  # For convenience
         self.first_task = True
         self.criterion_ood = nn.CrossEntropyLoss()
-        self.oodtpr = learner_config['oodtpr']
-        self.tpr = learner_config['tpr']
-        self.num_classes = learner_config['num_classes']
+        self.oodtpr = learner_config['oodtpr']  # 0.005
+        self.tpr = learner_config['tpr'] # 0.5
+        self.num_classes = learner_config['num_classes'] # 100
 
         # use pseudolabels
-        self.pl_flag = learner_config['pl_flag']
+        self.pl_flag = learner_config['pl_flag'] # True
         self.prob_threshold_class = 0.0
         self.prob_threshold_ood = 0.0
 

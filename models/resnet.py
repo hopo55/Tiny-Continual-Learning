@@ -230,9 +230,11 @@ class PreActResNet_DC(nn.Module):
 
 
 # ResNet for Cifar10/100 or the dataset with image size 32x32
+# Use this model for base model
 def WideResNet_28_2_cifar(out_dim=10):
     return PreActResNet_cifar(PreActBlock, [4, 4, 4], [32, 64, 128], num_classes=out_dim)
     
+# Use this model for ood model
 def WideResNet_DC_28_2_cifar(out_dim=10):
     return PreActResNet_DC(PreActBlock, [4, 4, 4], [32, 64, 128], num_classes=out_dim)
 

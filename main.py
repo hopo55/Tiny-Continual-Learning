@@ -14,7 +14,6 @@ torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
 cudnn.deterministic = True
 
-device = 'mps'
 dataset = 'CIFAR100'
 
 def run(seed):
