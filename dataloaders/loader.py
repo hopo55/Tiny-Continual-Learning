@@ -189,6 +189,7 @@ class iCIFAR10(data.Dataset):
 
         # targets as numpy.array
         self.targets = np.array(self.targets)
+        print('targets : ', self.targets)
 
         # if testing
         if not self.train and not validation:
