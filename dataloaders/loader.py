@@ -267,10 +267,10 @@ class iCIFAR10(data.Dataset):
 
                 # first find the tasks for which each class is present
                 class_presense = [[] for k in range(self.num_classes)]
-                print('frist class presense : ', class_presense)
                 for t in range(len(self.tasks)):
                     valid_classes = self.valid_ul[t]
                     for k in valid_classes: class_presense[k].append(t)
+                print('frist class presense : ', class_presense)
                 print('post class presense : ', np.array(class_presense).shape)
                 
                 # next, sample unlabeled data for each class
