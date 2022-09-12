@@ -152,7 +152,18 @@ def run(seed):
         # load dataset for task
         task = tasks_logits[i]
         prev = sorted(set([k for task in tasks_logits[:i] for k in task]))
-        print(prev)
+
+        # oracle
+        if oracle_flag:
+            train_dataset.load_dataset(prev, i, train=False)
+            train_dataset_ul.load_dataset(prev, i, train=False)
+            learner = learners.distillmatch.DistillMatch(learner_config)
+            out_dim_add += len(task)
+            print(out_dim_add)
+        else:
+            train_dataset.load_dataset(prev, i, train=True)
+            train_dataset_ul.load_dataset(prev, i, train=True)
+            out_dim_add = len(task)
 
 
 if __name__ == '__main__':
