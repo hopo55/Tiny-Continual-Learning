@@ -111,7 +111,6 @@ class iCIFAR10(data.Dataset):
                 if 'coarse_labels' in entry:
                     self.course_targets.extend(entry['coarse_labels'])
                 
-        print("course targets : ", np.array(self.course_targets).shape)
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self._load_meta()
@@ -179,7 +178,7 @@ class iCIFAR10(data.Dataset):
         else: # Not super
             self.tasks = tasks
 
-        # remap labels to match task order
+        # remap labels to match task order -> 100 class ?????
         c = 0
         self.class_mapping = {}
         self.class_mapping[-1] = -1
@@ -187,7 +186,6 @@ class iCIFAR10(data.Dataset):
             for k in task:
                 self.class_mapping[k] = c
                 c += 1
-        print("class mapping : ", self.class_mapping)
 
         # targets as numpy.array
         self.targets = np.array(self.targets)
@@ -231,10 +229,10 @@ class iCIFAR10(data.Dataset):
 
             if self.train:
                 # num labeled examples per class for sampling
-                num_labeled_pc = int(num_labeled / self.num_classes)
+                num_labeled_pc = int(num_labeled / self.num_classes) # 10000 / 100 = 100
 
                 # split dataset
-                self.archive = []
+                self.archive = [] # labeld dataset(data, target)
                 ul_data = []
                 ul_targets = []
 
@@ -269,9 +267,11 @@ class iCIFAR10(data.Dataset):
 
                 # first find the tasks for which each class is present
                 class_presense = [[] for k in range(self.num_classes)]
+                print('frist class presense : ', class_presense)
                 for t in range(len(self.tasks)):
                     valid_classes = self.valid_ul[t]
                     for k in valid_classes: class_presense[k].append(t)
+                print('post class presense : ', class_presense)
                 
                 # next, sample unlabeled data for each class
                 ul_data_samples = [[] for k in range(len(self.tasks))]
