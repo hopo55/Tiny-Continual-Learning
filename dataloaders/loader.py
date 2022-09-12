@@ -271,7 +271,7 @@ class iCIFAR10(data.Dataset):
                 for t in range(len(self.tasks)):
                     valid_classes = self.valid_ul[t]
                     for k in valid_classes: class_presense[k].append(t)
-                print('post class presense : ', class_presense)
+                print('post class presense : ', np.array(class_presense).shape)
                 
                 # next, sample unlabeled data for each class
                 ul_data_samples = [[] for k in range(len(self.tasks))]
