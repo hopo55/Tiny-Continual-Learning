@@ -147,6 +147,7 @@ def run(seed):
 
     for i in range(max_task):
         train_name = task_names[i]
+        print(train_name)
 
 
 if __name__ == '__main__':
