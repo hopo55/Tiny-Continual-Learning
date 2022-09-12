@@ -111,6 +111,7 @@ class iCIFAR10(data.Dataset):
                 if 'coarse_labels' in entry:
                     self.course_targets.extend(entry['coarse_labels'])
                 
+        print("course targets : ", self.course_targets)
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self._load_meta()
@@ -137,7 +138,6 @@ class iCIFAR10(data.Dataset):
             self.tasks = []
             if self.ul_dist == 'super' or self.ul_dist == 'neg':
                 self.valid_ul = []
-            print('super to mega value : ', self.super_to_mega.values())
             shuffled_superclasses = list(self.super_to_mega.values())
             if self.ul_dist == 'neg':
                 shuffle_complete = False
@@ -500,6 +500,10 @@ class iCIFAR100(iCIFAR10):
         'key': 'fine_label_names',
         'md5': '7973b15100ade9c7d40fb424638fde48',
     }
+    # super to mega -> 8 super-class / super-class contain parent class
+    # key : parent class
+    # value : super-class
+    # parent class contain 5 object class
     super_to_mega = {
         0:0, 1:0, 2:1, 3:2, 
         4:1, 5:2, 6:2, 7:3, 
