@@ -189,7 +189,6 @@ class iCIFAR10(data.Dataset):
 
         # targets as numpy.array
         self.targets = np.array(self.targets)
-        print('targets : ', self.targets)
 
         # if testing
         if not self.train and not validation:
@@ -227,6 +226,7 @@ class iCIFAR10(data.Dataset):
                 # rest is training data
                 self.data = self.data[locs_train]
                 self.targets = self.targets[locs_train]
+                print('targets : ', self.targets)
 
             if self.train:
                 # num labeled examples per class for sampling
