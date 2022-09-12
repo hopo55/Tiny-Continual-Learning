@@ -10,7 +10,7 @@ import dataloaders
 from dataloaders.utils import *
 
 
-seed = 0
+seed = 1
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
