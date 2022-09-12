@@ -151,7 +151,8 @@ def run(seed):
 
         # load dataset for task
         task = tasks_logits[i]
-        print(task)
+        prev = sorted(set([k for task in tasks_logits[:i] for k in task]))
+        print(prev)
 
 
 if __name__ == '__main__':
