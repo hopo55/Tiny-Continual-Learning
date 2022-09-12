@@ -189,6 +189,7 @@ class iCIFAR10(data.Dataset):
 
         # targets as numpy.array
         self.targets = np.array(self.targets)
+        print('validation : ', validation)
 
         # if testing
         if not self.train and not validation:
@@ -223,7 +224,7 @@ class iCIFAR10(data.Dataset):
                     self.archive.append((self.data[locs_val][locs].copy(), self.targets[locs_val][locs].copy()))
                 self.unlabeled = None
 
-                # rest is training data
+                # rest is training data -> 이거 수정
                 self.data = self.data[locs_train]
                 self.targets = self.targets[locs_train]
                 print('targets : ', self.targets)
