@@ -120,7 +120,7 @@ class iCIFAR10(data.Dataset):
         self.seed = seed
         self.t = -1
         self.l_dist = l_dist
-        self.ul_dist = ul_dist
+        self.ul_dist = ul_dist # None -> Positive
         if self.ul_dist == 'rand':
             self.valid_ul = [np.arange(self.num_classes) for t in range(int(len(tasks) * self.num_classes_rand_dist / self.num_classes))]
             for class_list in self.valid_ul:
@@ -132,11 +132,12 @@ class iCIFAR10(data.Dataset):
                 if len(np.unique(np.asarray(class_list))) < self.num_classes_rand_dist:
                     raise ValueError('multiple classes sampled for random task')
         else:
-            self.valid_ul = [np.arange(self.num_classes) for t in range(len(tasks))]
-        if self.l_dist == 'super':
+            self.valid_ul = [np.arange(self.num_classes) for t in range(len(tasks))] # ul_dist -> positive or negative
+        if self.l_dist == 'super':  # DM using super
             self.tasks = []
             if self.ul_dist == 'super' or self.ul_dist == 'neg':
                 self.valid_ul = []
+            print('super to mega value : ', self.super_to_mega.values())
             shuffled_superclasses = list(self.super_to_mega.values())
             if self.ul_dist == 'neg':
                 shuffle_complete = False
