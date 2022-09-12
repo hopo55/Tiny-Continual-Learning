@@ -111,7 +111,7 @@ class iCIFAR10(data.Dataset):
                 if 'coarse_labels' in entry:
                     self.course_targets.extend(entry['coarse_labels'])
                 
-        print("course targets : ", self.course_targets)
+        print("course targets : ", np.array(self.course_targets).shape)
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self._load_meta()
