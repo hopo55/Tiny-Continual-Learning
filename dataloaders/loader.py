@@ -266,12 +266,11 @@ class iCIFAR10(data.Dataset):
                 ul_targets = np.asarray(ul_targets)
 
                 # first find the tasks for which each class is present
+                # 각 class에 할당된 task를 의미???
                 class_presense = [[] for k in range(self.num_classes)]
                 for t in range(len(self.tasks)):
                     valid_classes = self.valid_ul[t]
                     for k in valid_classes: class_presense[k].append(t)
-                print('frist class presense : ', class_presense)
-                print('post class presense : ', np.array(class_presense).shape)
                 
                 # next, sample unlabeled data for each class
                 ul_data_samples = [[] for k in range(len(self.tasks))]
@@ -300,6 +299,7 @@ class iCIFAR10(data.Dataset):
                 self.unlabeled = []
                 for t in range(len(self.tasks)):
                     self.unlabeled.append((ul_data[ul_data_samples[t]],ul_targets[ul_data_samples[t]]))
+                print('unlabeled : ', self.unlabeled)
 
                 self.num_sample_ul = num_unlabeled_pt
 
