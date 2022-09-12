@@ -189,7 +189,6 @@ class iCIFAR10(data.Dataset):
 
         # targets as numpy.array
         self.targets = np.array(self.targets)
-        print('validation : ', validation)
 
         # if testing
         if not self.train and not validation:
@@ -216,7 +215,8 @@ class iCIFAR10(data.Dataset):
                         locs_train.extend(np.arange(start,stop))
                     start += num_data_per_fold
                     stop += num_data_per_fold
-
+                print('locs_train : ', locs_train)
+                
                 # sample validation data
                 self.archive = []
                 for task in self.tasks:
