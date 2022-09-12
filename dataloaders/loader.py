@@ -299,7 +299,6 @@ class iCIFAR10(data.Dataset):
                 self.unlabeled = []
                 for t in range(len(self.tasks)):
                     self.unlabeled.append((ul_data[ul_data_samples[t]],ul_targets[ul_data_samples[t]]))
-                print('unlabeled : ', self.unlabeled)
 
                 self.num_sample_ul = num_unlabeled_pt
 

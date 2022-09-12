@@ -3,6 +3,7 @@ import torch
 import random
 import numpy as np
 import torch.backends.cudnn as cudnn
+from collections import OrderedDict
 
 import learners
 import dataloaders
@@ -64,7 +65,7 @@ def run(seed):
     dataroot = 'data'
     labeled_samples = 10000 # image per task of CIFAR dataset 
     unlabeled_task_samples = -1
-    l_dist = 'super'
+    l_dist = 'super' # if l_dist is super, then resample task
     ul_dist = None
     validation = True
     repeat = 1
@@ -118,6 +119,34 @@ def run(seed):
                       }
     learner = learners.distillmatch.DistillMatch(learner_config)
     print(learner_config['model_type'])
+
+    oracle_flag = True
+    acc_table = OrderedDict()
+    acc_table_pt = OrderedDict()
+    if len(task_names) > 1 and oracle_flag:
+        run_ood = {}
+    else:
+        run_ood = None
+
+    log_dir = "outputs/out"
+    save_table = []
+    save_table_pc = -1 * np.ones((num_tasks,num_tasks))
+    pl_table = [[],[],[],[]]
+    temp_dir = log_dir + '/temp'
+    if not os.path.exists(temp_dir): os.makedirs(temp_dir)
+
+    # for oracle
+    out_dim_add = 0
+
+    # Training
+    max_task = -1
+    if max_task > 0:
+        max_task = min(max_task, len(task_names))
+    else:
+        max_task = len(task_names)
+
+    for i in range(max_task):
+        train_name = task_names[i]
 
 
 if __name__ == '__main__':
