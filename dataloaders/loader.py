@@ -93,7 +93,7 @@ class iCIFAR10(data.Dataset):
 
         self.data = []
         self.targets = []
-        self.course_targets = []
+        self.course_targets = [] # each image target class (20 class)
 
         # now load the picked numpy arrays
         for file_name, checksum in downloaded_list:
@@ -138,7 +138,7 @@ class iCIFAR10(data.Dataset):
             self.tasks = []
             if self.ul_dist == 'super' or self.ul_dist == 'neg':
                 self.valid_ul = []
-            shuffled_superclasses = list(self.super_to_mega.values())
+            shuffled_superclasses = list(self.super_to_mega.values()) # super-class
             if self.ul_dist == 'neg':
                 shuffle_complete = False
                 while not shuffle_complete:
@@ -176,7 +176,7 @@ class iCIFAR10(data.Dataset):
                 print('post-shuffle:' + str(self.tasks))
                 print('=============================================')
             
-        else:
+        else: # Not super
             self.tasks = tasks
 
         # remap labels to match task order
@@ -187,6 +187,7 @@ class iCIFAR10(data.Dataset):
             for k in task:
                 self.class_mapping[k] = c
                 c += 1
+        print("class mapping : ", self.class_mapping)
 
         # targets as numpy.array
         self.targets = np.array(self.targets)
