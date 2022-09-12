@@ -147,7 +147,11 @@ def run(seed):
 
     for i in range(max_task):
         train_name = task_names[i]
-        print(train_name)
+        print('======================', train_name, '=======================')
+
+        # load dataset for task
+        task = tasks_logits[i]
+        print(task)
 
 
 if __name__ == '__main__':
