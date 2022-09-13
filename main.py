@@ -4,6 +4,7 @@ import random
 import numpy as np
 import torch.backends.cudnn as cudnn
 from collections import OrderedDict
+from torch.utils.data import DataLoader
 
 import learners
 import dataloaders
@@ -89,11 +90,14 @@ def run(seed):
     tasks = train_dataset.tasks
 
     # Prepare the Learner (model)
+    workers = 8
+    batch_size = 64
+    ul_batch_size = 128
     learner_config = {'num_classes': num_classes,
                       'lr': 0.1,
                       'ul_batch_size': 128,
-                      'tpr': 0.05,
-                      'oodtpr': 0.005,
+                      'tpr': 0.05, # tpr for ood calibration of class network
+                      'oodtpr': 0.005, # tpr for ood calibration of ood network
                       'momentum': 0.9,
                       'weight_decay': 5e-4,
                       'schedule': [120, 160, 180, 200],
@@ -104,29 +108,26 @@ def run(seed):
                       'out_dim': 100,
                       'optimizer': 'SGD',
                       'gpuid': [0],
-                      'pl_flag': True,
-                      'fm_loss': True,
+                      'pl_flag': True, # use pseudo-labeled ul data for DM
+                      'fm_loss': True, # Use fix-match loss with classifier -> Consistency Regularization / eq.4
                       'weight_aux': 1,
                       'memory': 400,
                       'distill_loss': 'C',
-                      'co': 1.,
-                      'FT': True,
-                      'DW': True,
+                      'co': 1., # out-of-distribution confidence loss ratio
+                      'FT': True, # finetune distillation -> 이거 필요한가???
+                      'DW': True, # dataset balancing
                       'num_labeled_samples': labeled_samples,
                       'num_unlabeled_samples': unlabeled_task_samples,
                       'super_flag': l_dist == "super",
                       'no_unlabeled_data': True
                       }
-    learner = learners.distillmatch.DistillMatch(learner_config)
-    print(learner_config['model_type'])
 
-    oracle_flag = True
+    learner = learners.distillmatch.DistillMatch(learner_config)
+    print(learner_config['model_type']) 
+
     acc_table = OrderedDict()
     acc_table_pt = OrderedDict()
-    if len(task_names) > 1 and oracle_flag:
-        run_ood = {}
-    else:
-        run_ood = None
+    run_ood = None
 
     log_dir = "outputs/out"
     save_table = []
@@ -134,9 +135,6 @@ def run(seed):
     pl_table = [[],[],[],[]]
     temp_dir = log_dir + '/temp'
     if not os.path.exists(temp_dir): os.makedirs(temp_dir)
-
-    # for oracle
-    out_dim_add = 0
 
     # Training
     max_task = -1
@@ -153,17 +151,22 @@ def run(seed):
         task = tasks_logits[i]
         prev = sorted(set([k for task in tasks_logits[:i] for k in task]))
 
-        # oracle
-        if oracle_flag:
-            train_dataset.load_dataset(prev, i, train=False)
-            train_dataset_ul.load_dataset(prev, i, train=False)
-            learner = learners.distillmatch.DistillMatch(learner_config)
-            out_dim_add += len(task)
-        else:
-            train_dataset.load_dataset(prev, i, train=True)
-            train_dataset_ul.load_dataset(prev, i, train=True)
-            out_dim_add = len(task)
+        train_dataset.load_dataset(prev, i, train=True)
+        train_dataset_ul.load_dataset(prev, i, train=True)
+        out_dim_add = len(task)
+
+        # load dataset with memory
+        train_dataset.append_coreset(only=False)
+
+        # load dataloader
+        train_loader_l = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
+        train_loader_ul = DataLoader(train_dataset_ul, batch_size=ul_batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
+        train_loader_ul_task = DataLoader(train_dataset_ul, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
+        train_loader = dataloaders.SSLDataLoader(train_loader_l, train_loader_ul)
+
+    return acc_table, acc_table_pt, task_names, run_ood
 
 
 if __name__ == '__main__':
-    run(seed)
+    acc_table, acc_table_pt, task_names, run_ood = run(seed)
+    print(acc_table)
