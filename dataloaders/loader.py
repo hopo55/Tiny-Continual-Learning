@@ -209,14 +209,12 @@ class iCIFAR10(data.Dataset):
                 locs_train = []
                 locs_val = []
                 for f in range(kfolds):
-                    print(f)
                     if self.seed == f:
                         locs_val.extend(np.arange(start,stop))
                     else:
                         locs_train.extend(np.arange(start,stop))
                     start += num_data_per_fold
                     stop += num_data_per_fold
-                print('locs_train : ', locs_train)
 
                 # sample validation data
                 self.archive = []
@@ -228,7 +226,6 @@ class iCIFAR10(data.Dataset):
                 # rest is training data -> 이거 수정
                 self.data = self.data[locs_train]
                 self.targets = self.targets[locs_train]
-                print('targets : ', self.targets)
 
             if self.train:
                 # num labeled examples per class for sampling

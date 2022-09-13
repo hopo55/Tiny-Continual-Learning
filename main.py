@@ -159,7 +159,6 @@ def run(seed):
             train_dataset_ul.load_dataset(prev, i, train=False)
             learner = learners.distillmatch.DistillMatch(learner_config)
             out_dim_add += len(task)
-            print(out_dim_add)
         else:
             train_dataset.load_dataset(prev, i, train=True)
             train_dataset_ul.load_dataset(prev, i, train=True)
