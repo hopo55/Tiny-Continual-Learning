@@ -470,7 +470,8 @@ class DistillMatch(NormalNN):
         gradient = (gradient.float() - 0.5) * 2
         
         # Adding small perturbations to images
-        tempInputs = torch.add(inputs.detach(),  -self.oodeps, gradient)
+        # tempInputs = torch.add(inputs.detach(),  -self.oodeps, gradient)
+        tempInputs = inputs.detach().add(other=gradient, alpha=-self.oodeps)
 
         H, d = self.ood_model_past.ood_forward(tempInputs)
         H = H[:,:ood_dim]
@@ -531,7 +532,8 @@ class DistillMatch(NormalNN):
 
                     gradient = torch.ge(inputs.grad.data, 0)
                     gradient = (gradient.float() - 0.5) * 2
-                    modified_input = torch.add(inputs.detach(), -m, gradient)
+                    # modified_input = torch.add(inputs.detach(), -m, gradient)
+                    modified_input = inputs.detach().add(other=gradient, alpha=-m)
                     H.detach()
                     d.detach()
 

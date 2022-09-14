@@ -68,7 +68,8 @@ class NormalNN(nn.Module):
         if self.memory_size == 0: self.ft = False
         if self.ft:
             if self.schedule_type == 'decay':
-                self.fschedule = [10, 15, 20]
+                # self.fschedule = [10, 15, 20]
+                self.fschedule = [1, 2, 3]
                 self.schedule = self.config['schedule'][:-1]
         else:
             # no finetuning schedule

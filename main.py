@@ -128,7 +128,8 @@ def run(seed):
 
     acc_table = OrderedDict()
     acc_table_pt = OrderedDict()
-    run_ood = None
+    run_ood = {}
+    # run_ood = None
 
     log_dir = "outputs/out"
     save_table = []
@@ -205,6 +206,7 @@ def run(seed):
                 pl_table[ii].append(stats[ii])
                 save_file = temp_dir + '/'+names[ii]+'_table.csv'
                 np.savetxt(save_file, np.asarray(pl_table[ii]), delimiter=",", fmt='%.2f')
+
             run_ood['tpr'] = pl_table[1]
             run_ood['fpr'] = pl_table[0]
             run_ood['de'] = pl_table[2]
