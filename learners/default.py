@@ -207,7 +207,6 @@ class NormalNN(nn.Module):
         orig_mode = model.training
         model.eval()
         for i, (input, target, task) in enumerate(dataloader):
-
             if self.gpu:
                 with torch.no_grad():
                     input = input.cuda()
@@ -218,6 +217,10 @@ class NormalNN(nn.Module):
             else:
                 output = model.forward(input)[:, task_in]
                 acc = accumulate_acc(output, target-task_in[0], task, acc)
+
+            self.log("============================input============================")
+            self.log('Input {input}')
+            self.log("=============================================================")
             
         model.train(orig_mode)
 

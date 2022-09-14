@@ -85,7 +85,7 @@ def run(seed):
     test_dataset  = Dataset(dataroot, dataset, train=False,
                             download=False, transform=test_transform, l_dist=l_dist, ul_dist=ul_dist,
                             tasks=tasks, seed=seed, rand_split=rand_split, validation=validation, kfolds=repeat)
-
+    
     # in case tasks reset
     tasks = train_dataset.tasks
 
@@ -100,7 +100,8 @@ def run(seed):
                       'oodtpr': 0.005, # tpr for ood calibration of ood network
                       'momentum': 0.9,
                       'weight_decay': 5e-4,
-                      'schedule': [120, 160, 180, 200],
+                    #   'schedule': [120, 160, 180, 200], # schedule and epoch(schedule[-1])
+                      'schedule': [1, 2, 3, 4],
                       'schedule_type': 'decay',
                       'model_type': "resnet",
                       'model_name': "WideResNet_28_2_cifar",
@@ -163,6 +164,56 @@ def run(seed):
         train_loader_ul = DataLoader(train_dataset_ul, batch_size=ul_batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
         train_loader_ul_task = DataLoader(train_dataset_ul, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
         train_loader = dataloaders.SSLDataLoader(train_loader_l, train_loader_ul)
+
+        # add valid class to classifier
+        learner.add_valid_output_dim(out_dim_add)
+
+        # Learn
+        test_dataset.load_dataset(prev, i, train=False)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=workers)
+
+        model_save_dir = log_dir + '/models/repeat-'+str(seed)+'/task-'+task_names[i]+'/'
+        if not os.path.exists(model_save_dir): os.makedirs(model_save_dir)
+
+        learner.learn_batch(train_loader, train_dataset, train_dataset_ul, model_save_dir, test_loader)
+
+        # Evaluate
+        acc_table[train_name] = OrderedDict()
+        acc_table_pt[train_name] = OrderedDict()
+        for j in range(i+1):
+            val_name = task_names[j]
+            print('validation split name:', val_name)
+            test_dataset.load_dataset(prev, j, train=True)
+            test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=workers)
+
+            # validation
+            acc_table[val_name][train_name] = learner.validation(test_loader)
+            save_table_pc[i,j] = acc_table[val_name][train_name]
+
+            # past task validation
+            acc_table_pt[val_name][train_name] = learner.validation(test_loader, task_in = tasks_logits[j])
+
+        save_table.append(np.mean([acc_table[task_names[j]][train_name] for j in range(i+1)]))
+
+        # Evaluate PL
+        if i+1 < len(task_names):
+            test_dataset.load_dataset(prev, len(task_names)-1, train=False)
+            test_loader  = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=workers)
+            stats = learner.validation_pl(test_loader)
+            names = ['stats-fpr','stats-tpr','stats-de']
+            for ii in range(3):
+                pl_table[ii].append(stats[ii])
+                save_file = temp_dir + '/'+names[ii]+'_table.csv'
+                np.savetxt(save_file, np.asarray(pl_table[ii]), delimiter=",", fmt='%.2f')
+            run_ood['tpr'] = pl_table[1]
+            run_ood['fpr'] = pl_table[0]
+            run_ood['de'] = pl_table[2]
+
+        # save temporary results
+        save_file = temp_dir + '/acc_table.csv'
+        np.savetxt(save_file, np.asarray(save_table), delimiter=",", fmt='%.2f')
+        save_file_pc = temp_dir + '/acc_table_pc.csv'
+        np.savetxt(save_file_pc, np.asarray(save_table_pc), delimiter=",", fmt='%.2f')
 
     return acc_table, acc_table_pt, task_names, run_ood
 

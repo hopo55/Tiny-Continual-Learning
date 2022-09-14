@@ -172,6 +172,7 @@ class DistillMatch(NormalNN):
 
                 # Evaluate the performance of current task
                 if val_loader is not None:
+                    self.log("start validation")
                     self.validation(val_loader)
 
             # finetuning

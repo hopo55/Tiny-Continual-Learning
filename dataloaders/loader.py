@@ -165,15 +165,10 @@ class iCIFAR10(data.Dataset):
                     self.valid_ul.append(valid_ul_) 
             # shuffle order of tasks...
             if rand_split:
-                print('=============================================')
-                print('Shuffling in Super task (ignore previous shuffle!!!)....')
-                print('pre-shuffle:' + str(self.tasks))
                 random.seed(self.seed)
                 ctasks = list(zip(self.tasks, self.valid_ul))
                 random.shuffle(ctasks)
                 self.tasks[:], self.valid_ul[:] = zip(*ctasks)
-                print('post-shuffle:' + str(self.tasks))
-                print('=============================================')
             
         else: # Not super
             self.tasks = tasks
@@ -330,13 +325,6 @@ class iCIFAR10(data.Dataset):
         self.t = t
 
         
-        print('*********')
-        print('training - ' + str(self.train))
-        print('labeled - ' + str(self.lab))
-        print('classes - ' + str(np.unique(self.targets)))
-        print('num data - ' + str(len(self.targets)))
-        print('*********')
-
         # for backup
         shuffle_indexes = np.arange(len(self.targets))
         np.random.shuffle(shuffle_indexes)
@@ -719,14 +707,6 @@ class iTinyIMNET(iCIFAR10):
             self.targets = np.concatenate([self.archive[s][1] for s in range(t+1)], axis=0)
 
         self.t = t
-
-        
-        print('*********')
-        print('training - ' + str(self.train))
-        print('labeled - ' + str(self.lab))
-        print('classes - ' + str(np.unique(self.targets)))
-        print('num data - ' + str(len(self.targets)))
-        print('*********')
 
         # for backup
         shuffle_indexes = np.arange(len(self.targets))
