@@ -321,9 +321,7 @@ class iCIFAR10(data.Dataset):
         else:
             self.data    = np.concatenate([self.archive[s][0] for s in range(t+1)], axis=0)
             self.targets = np.concatenate([self.archive[s][1] for s in range(t+1)], axis=0)
-
         self.t = t
-
         
         # for backup
         shuffle_indexes = np.arange(len(self.targets))

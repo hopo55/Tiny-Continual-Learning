@@ -11,7 +11,7 @@ import dataloaders
 from dataloaders.utils import *
 
 
-seed = 1
+seed = 0
 random.seed(seed)
 np.random.seed(seed)
 torch.manual_seed(seed)
@@ -21,6 +21,9 @@ cudnn.deterministic = True
 dataset = 'CIFAR100'
 
 def run(seed):
+    if not os.path.exists('outputs'):
+        os.mkdir('outputs')
+
     # prepare dataloader
     if dataset == 'CIFAR10':
         Dataset = dataloaders.iCIFAR10
@@ -36,7 +39,6 @@ def run(seed):
         num_classes = 100
 
     # load tasks
-    # Five shuffled classes are assigned to one task.
     rand_split = True
     class_order = np.arange(num_classes).tolist()
     class_order_logits = np.arange(num_classes).tolist()
@@ -68,7 +70,7 @@ def run(seed):
     unlabeled_task_samples = -1
     l_dist = 'super' # if l_dist is super, then resample task
     ul_dist = None
-    validation = True
+    validation = False
     repeat = 1
     
     train_aug = True
@@ -97,7 +99,7 @@ def run(seed):
                       'lr': 0.1,
                       'ul_batch_size': 128,
                       'tpr': 0.05, # tpr for ood calibration of class network
-                      'oodtpr': 0.005, # tpr for ood calibration of ood network
+                      'oodtpr': 0.05, # tpr for ood calibration of ood network
                       'momentum': 0.9,
                       'weight_decay': 5e-4,
                     #   'schedule': [120, 160, 180, 200], # schedule and epoch(schedule[-1])
@@ -109,9 +111,9 @@ def run(seed):
                       'out_dim': 100,
                       'optimizer': 'SGD',
                       'gpuid': [0],
-                      'pl_flag': True, # use pseudo-labeled ul data for DM
-                      'fm_loss': True, # Use fix-match loss with classifier -> Consistency Regularization / eq.4
-                      'weight_aux': 1,
+                      'pl_flag': True, # use pseudo-labeled ul data for DM -> ???
+                      'fm_loss': True, # Use fix-match loss with classifier -> Consistency Regularization / eq.4 -> unsupervised loss
+                      'weight_aux': 1.0,
                       'memory': 400,
                       'distill_loss': 'C',
                       'co': 1., # out-of-distribution confidence loss ratio
@@ -120,18 +122,16 @@ def run(seed):
                       'num_labeled_samples': labeled_samples,
                       'num_unlabeled_samples': unlabeled_task_samples,
                       'super_flag': l_dist == "super",
-                      'no_unlabeled_data': True
+                      'no_unlabeled_data': False
                       }
 
     learner = learners.distillmatch.DistillMatch(learner_config)
-    print(learner_config['model_type']) 
 
     acc_table = OrderedDict()
     acc_table_pt = OrderedDict()
     run_ood = {}
-    # run_ood = None
 
-    log_dir = "outputs/out"
+    log_dir = "outputs/CIFAR100-10k/realistic/dm"
     save_table = []
     save_table_pc = -1 * np.ones((num_tasks,num_tasks))
     pl_table = [[],[],[],[]]
@@ -164,20 +164,21 @@ def run(seed):
         train_loader_l = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
         train_loader_ul = DataLoader(train_dataset_ul, batch_size=ul_batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
         train_loader_ul_task = DataLoader(train_dataset_ul, batch_size=batch_size, shuffle=True, drop_last=False, num_workers=int(workers / 2))
-        train_loader = dataloaders.SSLDataLoader(train_loader_l, train_loader_ul)
+        train_loader = dataloaders.SSLDataLoader(train_loader_l, train_loader_ul) # return labeled data, unlabeled data
 
         # add valid class to classifier
-        learner.add_valid_output_dim(out_dim_add)
+        learner.add_valid_output_dim(out_dim_add) # return number of classes learned to the current task
 
         # Learn
         test_dataset.load_dataset(prev, i, train=False)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=workers)
 
-        model_save_dir = log_dir + '/models/repeat-'+str(seed)+'/task-'+task_names[i]+'/'
+        model_save_dir = log_dir + '/models/repeat-'+str(seed+1)+'/task-'+task_names[i]+'/'
         if not os.path.exists(model_save_dir): os.makedirs(model_save_dir)
 
         learner.learn_batch(train_loader, train_dataset, train_dataset_ul, model_save_dir, test_loader)
-
+        
+    '''
         # Evaluate
         acc_table[train_name] = OrderedDict()
         acc_table_pt[train_name] = OrderedDict()
@@ -218,8 +219,9 @@ def run(seed):
         np.savetxt(save_file_pc, np.asarray(save_table_pc), delimiter=",", fmt='%.2f')
 
     return acc_table, acc_table_pt, task_names, run_ood
-
+'''
 
 if __name__ == '__main__':
-    acc_table, acc_table_pt, task_names, run_ood = run(seed)
-    print(acc_table)
+    run(seed)
+    # acc_table, acc_table_pt, task_names, run_ood = run(seed)
+    # print(acc_table)

@@ -207,6 +207,7 @@ class NormalNN(nn.Module):
 
         orig_mode = model.training
         model.eval()
+
         for i, (input, target, task) in enumerate(dataloader):
             if self.gpu:
                 with torch.no_grad():
@@ -219,10 +220,7 @@ class NormalNN(nn.Module):
                 output = model.forward(input)[:, task_in]
                 acc = accumulate_acc(output, target-task_in[0], task, acc)
 
-            self.log("============================input============================")
-            self.log('Input {input}')
-            self.log("=============================================================")
-            
+        print('finish validation')
         model.train(orig_mode)
 
         self.log(' * Val Acc {acc.avg:.3f}, Total time {time:.2f}'
@@ -245,12 +243,13 @@ class NormalNN(nn.Module):
     def data_weighting(self, dataset, num_seen=None):
 
         # count number of examples in dataset per class
-        print('*************************\n\n\n')
+        print('*************************')
         if num_seen is None:
             labels = [int(dataset[i][1]) for i in range(len(dataset))]
             labels = np.asarray(labels, dtype=np.int64)
             num_seen = np.asarray([len(labels[labels==k]) for k in range(self.valid_out_dim)], dtype=np.float32)
         print('num seen:' + str(num_seen))
+        print('*************************')
         
         # in case a zero exists in PL...
         num_seen += 1
@@ -261,7 +260,7 @@ class NormalNN(nn.Module):
         stats_local = num_seen[self.last_valid_out_dim:self.valid_out_dim]
         local_dw = np.ones(self.valid_out_dim - self.last_valid_out_dim + 1, dtype=np.float32)
         local_dw[:self.valid_out_dim - self.last_valid_out_dim ] = stats_local.sum() / (stats_local * len(stats_local))
-        local_dw[local_dw > self.dw_thresh] = self.dw_thresh
+        local_dw[local_dw > self.dw_thresh] = self.dw_thresh # 10.0
         local_dw= torch.tensor(local_dw)
 
         # previous seen
@@ -297,14 +296,6 @@ class NormalNN(nn.Module):
             dw_d = {'seen':seen_dw,'prev':prev_dw,'local':local_dw}
         else:
             dw_d = {'seen':seen,'prev':prev,'local':local}
-        print('dw_c')
-        print(dw_c)
-        print('dw_d')
-        print(dw_d)
-        print(seen_map)
-        print(prev_map)
-        print(cur_map)
-        print('\n\n\n*************************')
 
         # cuda
         if self.cuda:
@@ -316,11 +307,11 @@ class NormalNN(nn.Module):
             cur_map = cur_map.cuda()
             seen_map = seen_map.cuda()
         
-        self.dw_c = dw_c
+        self.dw_c = dw_c # when does it use this?
         self.dw_d = dw_d
-        self.prev_map = prev_map
-        self.cur_map = cur_map
-        self.seen_map = seen_map
+        self.prev_map = prev_map # when does it use this?
+        self.cur_map = cur_map # when does it use this?
+        self.seen_map = seen_map # when does it use this?
 
     def update_model(self, inputs_labeled, targets):
         

@@ -1,3 +1,4 @@
+from cgi import print_arguments
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -80,6 +81,10 @@ class DistillMatch(NormalNN):
 
     # main training function
     def learn_batch(self, train_loader, train_dataset, train_dataset_ul, model_dir, val_loader=None):
+
+        '''
+        :param train_dataset : The number of data points increases
+        '''
         
         self.tasks += 1
         if self.reset_optimizer:  # Reset optimizer before learning each task
@@ -142,6 +147,7 @@ class DistillMatch(NormalNN):
                         xul = [xul[k].cuda() for k in range(len(xul))]
                     
                     xu_ind = {}
+
                     if not self.first_task and self.pl_flag:
                         xl, y, stats, xu_ind = self.pseudolabel_batch(xl, y, xul, yul)
 
@@ -740,6 +746,11 @@ class DistillMatch(NormalNN):
 
             return xl_new, y_new, stats, xu_ind
         else:
+            print('===========config==========')
+            print(xl_new)
+            print(y_new)
+            print(xu_ind)
+            print('===========================')
             return xl_new, y_new, xu_ind
 
     # save models
