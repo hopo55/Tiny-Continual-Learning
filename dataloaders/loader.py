@@ -71,7 +71,7 @@ class iCIFAR10(data.Dataset):
         self.num_classes_rand_dist = 20 
 
         # if unlabeled distribution not declared, then same as labeled
-        self.lab = lab
+        self.lab = lab  # True
         if ul_dist is None: ul_dist = l_dist
 
         # process rest of args
@@ -86,14 +86,14 @@ class iCIFAR10(data.Dataset):
             raise RuntimeError('Dataset not found or corrupted.' +
                                ' You can use download=True to download it')
 
-        if self.train or validation:
+        if self.train or validation:    # validation = False
             downloaded_list = self.train_list
         else:
             downloaded_list = self.test_list
 
         self.data = []
-        self.targets = []
-        self.course_targets = [] # each image target class (20 class)
+        self.targets = [] # each image target class (100 classes)
+        self.course_targets = [] # each image target task (20 task)
 
         # now load the picked numpy arrays
         for file_name, checksum in downloaded_list:
@@ -114,13 +114,14 @@ class iCIFAR10(data.Dataset):
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
         self.data = self.data.transpose((0, 2, 3, 1))  # convert to HWC
         self._load_meta()
-        self.num_classes = len(np.unique(self.targets))
+        self.num_classes = len(np.unique(self.targets)) # number of total class
 
         # resample tasks if not vanilla task
         self.seed = seed
         self.t = -1
         self.l_dist = l_dist
-        self.ul_dist = ul_dist # None -> Positive
+        self.ul_dist = ul_dist # None -> Super(Positive)
+
         if self.ul_dist == 'rand':
             self.valid_ul = [np.arange(self.num_classes) for t in range(int(len(tasks) * self.num_classes_rand_dist / self.num_classes))]
             for class_list in self.valid_ul:
@@ -132,7 +133,9 @@ class iCIFAR10(data.Dataset):
                 if len(np.unique(np.asarray(class_list))) < self.num_classes_rand_dist:
                     raise ValueError('multiple classes sampled for random task')
         else:
-            self.valid_ul = [np.arange(self.num_classes) for t in range(len(tasks))] # ul_dist -> positive or negative
+            self.valid_ul = [np.arange(self.num_classes) for t in range(len(tasks))] # this self.valid_ul creates all classes for each task.
+        
+        # ul_dist -> positive or negative
         if self.l_dist == 'super':  # DM using super
             self.tasks = []
             if self.ul_dist == 'super' or self.ul_dist == 'neg':

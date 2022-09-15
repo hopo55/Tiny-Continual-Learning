@@ -145,6 +145,12 @@ def run(seed):
         max_task = len(task_names)
 
     for i in range(max_task):
+        # set seeds
+        random.seed(i)
+        np.random.seed(i)
+        torch.manual_seed(i)
+        torch.cuda.manual_seed(i)
+
         train_name = task_names[i]
         print('======================', train_name, '=======================')
 
