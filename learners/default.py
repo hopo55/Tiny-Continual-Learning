@@ -220,7 +220,6 @@ class NormalNN(nn.Module):
                 output = model.forward(input)[:, task_in]
                 acc = accumulate_acc(output, target-task_in[0], task, acc)
 
-        print('finish validation')
         model.train(orig_mode)
 
         self.log(' * Val Acc {acc.avg:.3f}, Total time {time:.2f}'
@@ -258,7 +257,7 @@ class NormalNN(nn.Module):
         local = np.ones(self.valid_out_dim - self.last_valid_out_dim + 1, dtype=np.float32)
         local = torch.tensor(local)
         stats_local = num_seen[self.last_valid_out_dim:self.valid_out_dim]
-        local_dw = np.ones(self.valid_out_dim - self.last_valid_out_dim + 1, dtype=np.float32)
+        local_dw = np.ones(self.valid_out_dim - self.last_valid_out_dim + 1, dtype=np.float32) 
         local_dw[:self.valid_out_dim - self.last_valid_out_dim ] = stats_local.sum() / (stats_local * len(stats_local))
         local_dw[local_dw > self.dw_thresh] = self.dw_thresh # 10.0
         local_dw= torch.tensor(local_dw)

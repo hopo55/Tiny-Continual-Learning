@@ -137,7 +137,9 @@ class DistillMatch(NormalNN):
                 data_timer.tic()
                 batch_timer.tic()
                 for i, (xl, y, xul, yul, task)  in enumerate(train_loader):
-
+                    print('===========config==========')
+                    print(task)
+                    print('===========================')
                     data_time.update(data_timer.toc())  # measure data loading time
                     self.batch_xl = y.size(0)
 
@@ -157,15 +159,15 @@ class DistillMatch(NormalNN):
                         detection_error.update(stats[2], yul.size(0))
                     
                     # model update
-                    loss, output, lu, ls = self.update_model(xl, y, xul, xu_ind)
+                    loss, output, lu, ls = self.update_model(xl, y, xul, xu_ind) # loss(total loss), output(forward labeled), lu(loss unsupervised), ls(loss supervised)
 
                     y = y.detach()
 
                     # measure accuracy and record loss
                     accumulate_acc(output, y, task, acc)
-                    losses.update(loss,  y.size(0))   
-                    losses_ul.update(lu, y.size(0))   
-                    losses_ce.update(ls, y.size(0))   
+                    losses.update(loss,  y.size(0)) # total
+                    losses_ul.update(lu, y.size(0)) # loss unsupervised
+                    losses_ce.update(ls, y.size(0)) # loss supervised
                     batch_time.update(batch_timer.toc())  # measure elapsed time
                     data_timer.toc()
 
@@ -178,7 +180,6 @@ class DistillMatch(NormalNN):
 
                 # Evaluate the performance of current task
                 if val_loader is not None:
-                    self.log("start validation")
                     self.validation(val_loader)
 
             # finetuning
@@ -327,11 +328,9 @@ class DistillMatch(NormalNN):
         # unsupervised loss
         loss_unsupervised = torch.zeros((1,), requires_grad=True).cuda()    
         if (not self.first_task) and self.config['fm_loss']:
-            tasks = [
-                    np.arange(0,self.valid_out_dim)
-                    ]
+            tasks = [np.arange(0,self.valid_out_dim)]
             task_idx = [np.arange(len(inputs_unlabeled[0]))]
-            loss_unsupervised = self.fm_loss(tasks, inputs_unlabeled, task_idx)   
+            loss_unsupervised = self.fm_loss(tasks, inputs_unlabeled, task_idx)
 
         # supervised loss  
         logits_labeled = self.forward(inputs_labeled[0]) 
@@ -746,11 +745,6 @@ class DistillMatch(NormalNN):
 
             return xl_new, y_new, stats, xu_ind
         else:
-            print('===========config==========')
-            print(xl_new)
-            print(y_new)
-            print(xu_ind)
-            print('===========================')
             return xl_new, y_new, xu_ind
 
     # save models
