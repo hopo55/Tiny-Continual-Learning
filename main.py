@@ -1,4 +1,3 @@
-from cProfile import run
 import torch
 import random
 import numpy as np
@@ -178,7 +177,6 @@ def run(seed):
 
         learner.learn_batch(train_loader, train_dataset, train_dataset_ul, model_save_dir, test_loader)
         
-    '''
         # Evaluate
         acc_table[train_name] = OrderedDict()
         acc_table_pt[train_name] = OrderedDict()
@@ -219,9 +217,7 @@ def run(seed):
         np.savetxt(save_file_pc, np.asarray(save_table_pc), delimiter=",", fmt='%.2f')
 
     return acc_table, acc_table_pt, task_names, run_ood
-'''
 
 if __name__ == '__main__':
-    run(seed)
-    # acc_table, acc_table_pt, task_names, run_ood = run(seed)
-    # print(acc_table)
+    acc_table, acc_table_pt, task_names, run_ood = run(seed)
+    print(acc_table)

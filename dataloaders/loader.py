@@ -497,6 +497,16 @@ class iCIFAR100(iCIFAR10):
         12:4, 13:3, 14:6, 15:4, 
         16:4, 17:1, 18:7, 19:7
         }
+    '''
+    super1 : task1, task2
+    super2 : task3, task5, task18
+    super3 : task4, task6, task7
+    super4 : task8, task14
+    super5 : task9, task12, task13, task16, task17
+    super6 : task10, task11
+    super7 : task15
+    super8 : task19, task20
+    '''
 
 
 class iTinyIMNET(iCIFAR10):

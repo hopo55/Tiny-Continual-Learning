@@ -137,9 +137,6 @@ class DistillMatch(NormalNN):
                 data_timer.tic()
                 batch_timer.tic()
                 for i, (xl, y, xul, yul, task)  in enumerate(train_loader):
-                    print('===========config==========')
-                    print(task)
-                    print('===========================')
                     data_time.update(data_timer.toc())  # measure data loading time
                     self.batch_xl = y.size(0)
 
