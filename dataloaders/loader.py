@@ -109,8 +109,6 @@ class iCIFAR10(data.Dataset):
                 else:
                     self.targets.extend(entry['fine_labels'])
                 if 'coarse_labels' in entry: # super-class (fish, flowers or insects...)
-                    print(entry['coarse_labels'])
-                    print(np.array(entry['coarse_labels']).shape)
                     self.course_targets.extend(entry['coarse_labels'])
                 
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
@@ -178,7 +176,9 @@ class iCIFAR10(data.Dataset):
         else: # Not super
             self.tasks = tasks
 
-        # remap labels to match task order -> 100 class ?????
+        # remap labels to match task order -> 100 class
+        # 각 task에 할당된 class에 index를 부여하여 나중에 각 task에 할당된 클래스를 찾기 위해 사용
+        # ex) task-1 = [23, 33, 49, 60, 71]
         c = 0
         self.class_mapping = {}
         self.class_mapping[-1] = -1
