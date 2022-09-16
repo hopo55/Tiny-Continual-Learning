@@ -109,6 +109,7 @@ class iCIFAR10(data.Dataset):
                 else:
                     self.targets.extend(entry['fine_labels'])
                 if 'coarse_labels' in entry:
+                    print(np.array(entry['coarse_labels']).shape)
                     self.course_targets.extend(entry['coarse_labels'])
                 
         self.data = np.vstack(self.data).reshape(-1, 3, 32, 32)
@@ -137,7 +138,7 @@ class iCIFAR10(data.Dataset):
         
         # ul_dist -> positive or negative
         if self.l_dist == 'super':  # DM using super
-            self.tasks = []
+            self.tasks = [] # Unique targets for each task
             if self.ul_dist == 'super' or self.ul_dist == 'neg':
                 self.valid_ul = []
             shuffled_superclasses = list(self.super_to_mega.values()) # super-class
@@ -152,10 +153,10 @@ class iCIFAR10(data.Dataset):
                             shuffle_complete = False
 
                 self.super_to_mega = dict(zip(self.super_to_mega.keys(), shuffled_superclasses))           
-            for super_k in np.unique(self.course_targets):
+            for super_k in np.unique(self.course_targets):  # super_k = task
                 ind_task = np.where(self.course_targets == super_k)[0]
-                ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))]
-                classes_in_task = np.unique(ind_task_labels)
+                ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))] # Target index corresponding to each test
+                classes_in_task = np.unique(ind_task_labels) # Unique targets for each task
                 self.tasks.append(classes_in_task.tolist())
                 if self.ul_dist == 'super' or self.ul_dist == 'neg':
                     valid_ul_ = []
@@ -165,7 +166,7 @@ class iCIFAR10(data.Dataset):
                             ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))]
                             classes_in_task = np.unique(ind_task_labels)
                             valid_ul_.extend(classes_in_task.tolist())
-                    self.valid_ul.append(valid_ul_) 
+                    self.valid_ul.append(valid_ul_)
             # shuffle order of tasks...
             if rand_split:
                 random.seed(self.seed)
@@ -237,6 +238,7 @@ class iCIFAR10(data.Dataset):
                 for task in self.tasks:
                     data_k = []
                     targets_k = []
+                    # k is the class assigned to each task
                     for k in task:
                         # get indexes of dataset corresponding to k
                         locs = (self.targets == k).nonzero()[0]
@@ -257,14 +259,14 @@ class iCIFAR10(data.Dataset):
                         ul_targets.extend(self.targets[locs_unlabeled].copy())
                     
                     # append task
-                    self.archive.append((data_k,targets_k))
+                    self.archive.append((data_k, targets_k))
                 
                 # combine unlabeled data
                 ul_data = np.asarray(ul_data)
                 ul_targets = np.asarray(ul_targets)
 
                 # first find the tasks for which each class is present
-                # 각 class에 할당된 task를 의미???
+                # class_presense assign task to each class
                 class_presense = [[] for k in range(self.num_classes)]
                 for t in range(len(self.tasks)):
                     valid_classes = self.valid_ul[t]
@@ -276,10 +278,17 @@ class iCIFAR10(data.Dataset):
 
                     # get indexes of dataset corresponding to k
                     locs = (ul_targets == k).nonzero()[0]
+                    # number of unlabeled data
+                    # cifar100 each class contain 500 data so labeled data get 100 and unlabeled data get 400
                     num_k = len(locs)
 
                     # shuffle with given seed - remove risk
                     locs_ind = locs[np.random.RandomState(seed=self.seed).permutation(len(locs))]
+
+                    # print('========================')
+                    # print(num_k)
+                    # print(class_presense[k])
+                    # print('========================')
 
                     # number of samples allowed per task for this class
                     num_sample_pt = int(num_k / len(class_presense[k]))
