@@ -93,7 +93,7 @@ class iCIFAR10(data.Dataset):
 
         self.data = []
         self.targets = [] # each image target class (100 classes)
-        self.course_targets = [] # each image target task (20 task)
+        self.course_targets = [] # each image target task (20 task) -> super-class
 
         # now load the picked numpy arrays
         for file_name, checksum in downloaded_list:
@@ -104,11 +104,12 @@ class iCIFAR10(data.Dataset):
                 else:
                     entry = pickle.load(f, encoding='latin1')
                 self.data.append(entry['data'])
-                if 'labels' in entry:
+                if 'labels' in entry: # sub-class
                     self.targets.extend(entry['labels'])
                 else:
                     self.targets.extend(entry['fine_labels'])
-                if 'coarse_labels' in entry:
+                if 'coarse_labels' in entry: # super-class (fish, flowers or insects...)
+                    print(entry['coarse_labels'])
                     print(np.array(entry['coarse_labels']).shape)
                     self.course_targets.extend(entry['coarse_labels'])
                 
