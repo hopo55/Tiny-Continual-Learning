@@ -86,7 +86,10 @@ class iCIFAR10(data.Dataset):
             raise RuntimeError('Dataset not found or corrupted.' +
                                ' You can use download=True to download it')
 
-        downloaded_list = self.test_list
+        if self.train or validation:
+            downloaded_list = self.train_list # not use
+        else:
+            downloaded_list = self.test_list # use this
 
         self.data = []
         self.targets = [] # each image target class (100 classes)
@@ -118,28 +121,57 @@ class iCIFAR10(data.Dataset):
         self.t = -1
         self.l_dist = l_dist
         self.ul_dist = ul_dist # None -> Super(Positive)
-        self.valid_ul = [np.arange(self.num_classes) for t in range(len(tasks))] # this self.valid_ul creates all classes for each task.
+        if self.ul_dist == 'rand': # not use
+            self.valid_ul = [np.arange(self.num_classes) for t in range(int(len(tasks) * self.num_classes_rand_dist / self.num_classes))]
+            for class_list in self.valid_ul:
+                np.random.shuffle(class_list)
+            self.valid_ul = np.asarray(self.valid_ul)
+            self.valid_ul = self.valid_ul.reshape(len(tasks),self.num_classes_rand_dist)
+            self.valid_ul = self.valid_ul.tolist()
+            for class_list in self.valid_ul:
+                if len(np.unique(np.asarray(class_list))) < self.num_classes_rand_dist:
+                    raise ValueError('multiple classes sampled for random task')
+        else: 
+            # use this
+            self.valid_ul = [np.arange(self.num_classes) for t in range(len(tasks))] # this self.valid_ul creates all classes for each task.
         
-        self.tasks = [] # Unique targets for each task        
-        for super_k in np.unique(self.course_targets):  # super_k = task
-            ind_task = np.where(self.course_targets == super_k)[0]
-            ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))] # Target index corresponding to each test
-            classes_in_task = np.unique(ind_task_labels) # Unique targets for each task
-            self.tasks.append(classes_in_task.tolist())
-            if self.ul_dist == 'super' or self.ul_dist == 'neg':
-                valid_ul_ = []
-                for super_k_embedded in np.unique(self.course_targets):
-                    if self.super_to_mega[super_k_embedded] == self.super_to_mega[super_k]:
-                        ind_task = np.where(self.course_targets == super_k_embedded)[0]
-                        ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))]
-                        classes_in_task = np.unique(ind_task_labels)
-                        valid_ul_.extend(classes_in_task.tolist())
-                self.valid_ul.append(valid_ul_)
-        # shuffle order of tasks...
-        random.seed(self.seed)
-        ctasks = list(zip(self.tasks, self.valid_ul))
-        random.shuffle(ctasks)
-        self.tasks[:], self.valid_ul[:] = zip(*ctasks)
+        if self.l_dist == 'super':
+            self.tasks = [] # Unique targets for each task        
+            if self.ul_dist == 'super' or self.ul_dist == 'neg': # not use
+                self.valid_ul = []
+            shuffled_superclasses = list(self.super_to_mega.values())
+            if self.ul_dist == 'neg': # not use
+                shuffle_complete = False
+                while not shuffle_complete:
+                    random.shuffle(shuffled_superclasses)
+                    shuffle_dic = dict(zip(self.super_to_mega.keys(), shuffled_superclasses)) 
+                    shuffle_complete = True
+                    for key, value in self.super_to_mega.items():
+                        if shuffle_dic[key] == value:
+                            shuffle_complete = False
+
+                self.super_to_mega = dict(zip(self.super_to_mega.keys(), shuffled_superclasses))           
+            for super_k in np.unique(self.course_targets):  # super_k = task
+                ind_task = np.where(self.course_targets == super_k)[0]
+                ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))] # Target index corresponding to each test
+                classes_in_task = np.unique(ind_task_labels) # Unique targets for each task
+                self.tasks.append(classes_in_task.tolist())
+                if self.ul_dist == 'super' or self.ul_dist == 'neg':
+                    valid_ul_ = []
+                    for super_k_embedded in np.unique(self.course_targets):
+                        if self.super_to_mega[super_k_embedded] == self.super_to_mega[super_k]:
+                            ind_task = np.where(self.course_targets == super_k_embedded)[0]
+                            ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))]
+                            classes_in_task = np.unique(ind_task_labels)
+                            valid_ul_.extend(classes_in_task.tolist())
+                    self.valid_ul.append(valid_ul_)
+            # shuffle order of tasks...
+            random.seed(self.seed)
+            ctasks = list(zip(self.tasks, self.valid_ul))
+            random.shuffle(ctasks)
+            self.tasks[:], self.valid_ul[:] = zip(*ctasks)
+        else:
+            self.tasks = tasks # not use
 
         # remap labels to match task order -> 100 class
         # 각 task에 할당된 class에 index를 부여하여 나중에 각 task에 할당된 클래스를 찾기 위해 사용
@@ -165,6 +197,33 @@ class iCIFAR10(data.Dataset):
 
         # if validation data
         else:
+            if validation: # not use
+
+                # get locations of training and validation for kfolds validation
+                num_data_per_fold = int(len(self.targets) / kfolds)
+                start = 0
+                stop = num_data_per_fold
+                locs_train = []
+                locs_val = []
+                for f in range(kfolds):
+                    if self.seed == f:
+                        locs_val.extend(np.arange(start,stop))
+                    else:
+                        locs_train.extend(np.arange(start,stop))
+                    start += num_data_per_fold
+                    stop += num_data_per_fold
+
+                # sample validation data
+                self.archive = []
+                for task in self.tasks:
+                    locs = np.isin(self.targets[locs_val], task).nonzero()[0]
+                    self.archive.append((self.data[locs_val][locs].copy(), self.targets[locs_val][locs].copy()))
+                self.unlabeled = None
+
+                # rest is training data
+                self.data = self.data[locs_train]
+                self.targets = self.targets[locs_train]
+
             if self.train:
                 # num labeled examples per class for sampling
                 num_labeled_pc = int(num_labeled / self.num_classes) # 10000 / 100 = 100
