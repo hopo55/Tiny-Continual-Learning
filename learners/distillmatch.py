@@ -20,8 +20,8 @@ class DistillMatch(NormalNN):
         if learner_config['ood_model_name'] == None: learner_config['ood_model_name'] = learner_config['model_name']
 
         # simple init calls
-        super(DistillMatch, self).__init__(learner_config)
-        self.params = {n: p for n, p in self.model.named_parameters() if p.requires_grad}  # For convenience
+        super(DistillMatch, self).__init__(learner_config) # create model(NormalNN)
+        self.params = {n: p for n, p in self.model.named_parameters() if p.requires_grad}  # model layer name and parameters
         self.first_task = True
         self.criterion_ood = nn.CrossEntropyLoss()
         self.oodtpr = learner_config['oodtpr']  # 0.005

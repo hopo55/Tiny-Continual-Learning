@@ -29,7 +29,7 @@ class NormalNN(nn.Module):
         super(NormalNN, self).__init__()
         self.log = print
         self.config = learner_config
-        self.model = self.create_model()
+        self.model = self.create_model() # resnet
         self.reset_optimizer = True
 
         # class balancing
@@ -38,6 +38,8 @@ class NormalNN(nn.Module):
 
         # supervised criterion
         if self.dw:
+            # reduction='none'
+            # ingnore_index=-1 -> unlabeled samples
             self.criterion_fn = nn.CrossEntropyLoss(reduction='none', ignore_index=-1)
         else:
             self.criterion_fn = nn.CrossEntropyLoss()

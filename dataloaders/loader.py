@@ -59,7 +59,7 @@ class iCIFAR10(data.Dataset):
         '''
         :param root : data file path
         :param dataset : dataset
-        :param num_unlabeled_pt : ???
+        :param num_unlabeled_pt : Number of unlabeled samples in each task in ssl / input = (unlabeled_task_samples = -1)
         :param train : if true using train dataste else using test dataset
         :param lab : if unlabeled distribution not declared, then same as labeled
         :param transform : transform data
@@ -285,11 +285,6 @@ class iCIFAR10(data.Dataset):
 
                     # shuffle with given seed - remove risk
                     locs_ind = locs[np.random.RandomState(seed=self.seed).permutation(len(locs))]
-
-                    # print('========================')
-                    # print(num_k)
-                    # print(class_presense[k])
-                    # print('========================')
 
                     # number of samples allowed per task for this class
                     num_sample_pt = int(num_k / len(class_presense[k]))
