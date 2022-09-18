@@ -87,9 +87,9 @@ class iCIFAR10(data.Dataset):
                                ' You can use download=True to download it')
 
         if self.train or validation:
-            downloaded_list = self.train_list # not use
+            downloaded_list = self.train_list
         else:
-            downloaded_list = self.test_list # use this
+            downloaded_list = self.test_list
 
         self.data = []
         self.targets = [] # each image target class (100 classes)
