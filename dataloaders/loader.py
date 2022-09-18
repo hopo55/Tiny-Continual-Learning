@@ -156,7 +156,7 @@ class iCIFAR10(data.Dataset):
                 ind_task_labels = [self.targets[ind_task[i]] for i in range(len(ind_task))] # Target index corresponding to each test
                 classes_in_task = np.unique(ind_task_labels) # Unique targets for each task
                 self.tasks.append(classes_in_task.tolist())
-                if self.ul_dist == 'super' or self.ul_dist == 'neg':
+                if self.ul_dist == 'super' or self.ul_dist == 'neg': # not use
                     valid_ul_ = []
                     for super_k_embedded in np.unique(self.course_targets):
                         if self.super_to_mega[super_k_embedded] == self.super_to_mega[super_k]:
@@ -185,6 +185,7 @@ class iCIFAR10(data.Dataset):
                 c += 1
 
         # targets as numpy.array
+        # target is all dataset target class
         self.targets = np.array(self.targets)
 
         # if testing
@@ -198,7 +199,6 @@ class iCIFAR10(data.Dataset):
         # if validation data
         else:
             if validation: # not use
-
                 # get locations of training and validation for kfolds validation
                 num_data_per_fold = int(len(self.targets) / kfolds)
                 start = 0
