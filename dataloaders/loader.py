@@ -732,7 +732,7 @@ class iTinyIMNET(iCIFAR10):
     def sample_dataset(self, start = 0.0, end = 1.0, last_class = 0):
 
         # if labeled, split evenly by classes
-        if self.lab:
+        if self.lab: # lab = True
             self.data = []
             self.targets = []
 

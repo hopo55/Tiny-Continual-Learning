@@ -110,10 +110,10 @@ def run(seed):
                       'out_dim': 100,
                       'optimizer': 'SGD',
                       'gpuid': [0],
-                      'pl_flag': True, # use pseudo-labeled ul data for DM -> ???
+                      'pl_flag': True, # use pseudo-labeled ul data for DM
                       'fm_loss': True, # Use fix-match loss with classifier -> Consistency Regularization / eq.4 -> unsupervised loss
                       'weight_aux': 1.0,
-                      'memory': 400,
+                      'memory': 4000,
                       'distill_loss': 'C',
                       'co': 1., # out-of-distribution confidence loss ratio
                       'FT': True, # finetune distillation -> 이거 필요한가???
@@ -156,13 +156,14 @@ def run(seed):
 
         # load dataset for task
         task = tasks_logits[i]
-        prev = sorted(set([k for task in tasks_logits[:i] for k in task]))
+        prev = sorted(set([k for task in tasks_logits[:i] for k in task])) # prev where classes learned so far are stored
 
+        # current class와 prev class 모두 load
         train_dataset.load_dataset(prev, i, train=True)
         train_dataset_ul.load_dataset(prev, i, train=True)
         out_dim_add = len(task)
 
-        # load dataset with memory
+        # load dataset with memory(coreset)
         train_dataset.append_coreset(only=False)
 
         # load dataloader
@@ -175,6 +176,7 @@ def run(seed):
         learner.add_valid_output_dim(out_dim_add) # return number of classes learned to the current task
 
         # Learn
+        # load test dataset dataloader
         test_dataset.load_dataset(prev, i, train=False)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, drop_last=False, num_workers=workers)
 

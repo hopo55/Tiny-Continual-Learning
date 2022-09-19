@@ -24,8 +24,8 @@ class DistillMatch(NormalNN):
         self.params = {n: p for n, p in self.model.named_parameters() if p.requires_grad}  # model layer name and parameters
         self.first_task = True
         self.criterion_ood = nn.CrossEntropyLoss()
-        self.oodtpr = learner_config['oodtpr']  # 0.005
-        self.tpr = learner_config['tpr'] # 0.5
+        self.oodtpr = learner_config['oodtpr']  # 0.05
+        self.tpr = learner_config['tpr'] # 0.05
         self.num_classes = learner_config['num_classes'] # 100
 
         # use pseudolabels
@@ -93,7 +93,7 @@ class DistillMatch(NormalNN):
 
         # get data weighting
         if self.first_task:
-            self.data_weighting(train_dataset)
+            self.data_weighting(train_dataset) # if first task get first labeled data weight.
         else:
             self.data_weighting(train_dataset, num_seen=self.pseudolabel_DW_dataset(train_loader))
 
@@ -235,7 +235,7 @@ class DistillMatch(NormalNN):
             if self.pl_flag:
                 self.log("Training OOD detection model...")
                 # sample dataset
-                train_dataset.sample_dataset(0.0, self.ood_holdout_ratio)
+                train_dataset.sample_dataset(0.0, self.ood_holdout_ratio) # ood_holdout_ratio = 0.5
                 train_dataset_ul.sample_dataset(0.0, self.ood_holdout_ratio)
                 if not self.first_task: self.data_weighting(train_dataset, num_seen=self.pseudolabel_DW_dataset(train_loader, ood_type='ood'))
                 for epoch in range(self.ood_epochs):
@@ -363,7 +363,7 @@ class DistillMatch(NormalNN):
     def update_ood_model(self, inputs_labeled, targets, inputs_unlabeled, unlabeled_ind):
         
         loss_unsupervised = torch.zeros((1,), requires_grad=True).cuda()               
-        logits_labeled = self.forward(inputs_labeled[0],ood=True)
+        logits_labeled = self.forward(inputs_labeled[0], ood=True)
         loss_supervised = self.criterion(logits_labeled, targets.long())
         total_loss = loss_supervised + self.weight_aux*loss_unsupervised
             
@@ -450,14 +450,18 @@ class DistillMatch(NormalNN):
         logits_new = self.copy_model.forward(xul).detach()[:,:ood_dim]
         _, pseudo_labels_return = logits_new.max(dim=1)
 
-        if ood_type == 'class':
-            thresh = self.prob_threshold_class
+        if ood_type == 'class': # use this
+            thresh = self.prob_threshold_class # start 0
         elif ood_type == 'ood':
             thresh = self.prob_threshold_ood
 
         # decomposed confidence
         # calculate pertubation
         # first, get scaled logit
+        '''
+        :param H: ???
+        :param d: ???
+        '''
         inputs = Variable(xul, requires_grad = True)
         H, d = self.ood_model_past.ood_forward(inputs)
         H = H[:,:ood_dim]
@@ -509,9 +513,9 @@ class DistillMatch(NormalNN):
         self.ood_model_past.eval()
 
         # find input pertubation epsilon
-        if len(self.dc_eps_values) == 1:
+        if len(self.dc_eps_values) == 1: # not use
             self.oodeps = self.dc_eps_values[0]
-        else:
+        else: # use this
             magnitude_list = self.dc_eps_values
             self.log('Searching the best perturbation magnitude on in-domain data. Magnitude:', magnitude_list)
             loss_list = {}
@@ -550,7 +554,7 @@ class DistillMatch(NormalNN):
 
                 loss_list[m] = loss_meter.avg
                 self.log('Magnitude:', m, 'loss:', loss_list[m])
-            best_m = min(loss_list, key=(lambda key: loss_list[key]))
+            best_m = min(loss_list, key=(lambda key: loss_list[key])) # choose best magnitude
             self.oodeps = best_m / 2.
         
         # sample dataset for next part
@@ -559,7 +563,7 @@ class DistillMatch(NormalNN):
 
         # get scores from dataset
         scores_max_all = []
-        for loop in range(self.num_delta_loop): 
+        for loop in range(self.num_delta_loop):  # num_delta_loop = 10
             for i, (xl, y, xul, yul, task)  in enumerate(train_loader):
 
                 if self.gpu:
@@ -576,8 +580,8 @@ class DistillMatch(NormalNN):
 
         # get class data
         scores_k = scores_max_all
-        ood_thresh = self.oodtpr
-        class_thresh = self.tpr
+        ood_thresh = self.oodtpr # 0.05
+        class_thresh = self.tpr # 0.05
 
         # first for ood network
         start = 1.0 / self.valid_out_dim
