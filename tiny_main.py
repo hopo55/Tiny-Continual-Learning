@@ -1,8 +1,9 @@
-import torch
 import random
 import numpy as np
-import torch.backends.cudnn as cudnn
 from collections import OrderedDict
+
+import torch
+import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 
 import learners
