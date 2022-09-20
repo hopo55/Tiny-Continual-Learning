@@ -151,9 +151,6 @@ class PreActResNet_cifar(nn.Module):
         out = self.stage1(out)
         out = self.stage2(out)
         out = self.stage3(out)
-        out = F.relu(self.bn_last(out))
-        out = F.avg_pool2d(out, 8)
-        out = out.view(out.size(0), -1)
         return out
 
     def logits(self, x):
