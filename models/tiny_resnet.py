@@ -121,7 +121,8 @@ class PreActResNet_cifar(nn.Module):
         self.stage2 = self._make_layer(block, filters[1], num_blocks[1], stride=2, droprate=droprate)
         self.stage3 = self._make_layer(block, filters[2], num_blocks[2], stride=2, droprate=droprate)
         self.bn_last = nn.BatchNorm2d(filters[2])
-        self.last = nn.Linear(last_planes, num_classes)
+        # self.last = nn.Linear(last_planes, num_classes)
+        self.last = CosineScaling(last_planes, num_classes)
 
         """
         for m in self.modules():
@@ -150,6 +151,9 @@ class PreActResNet_cifar(nn.Module):
         out = self.stage1(out)
         out = self.stage2(out)
         out = self.stage3(out)
+        out = F.relu(self.bn_last(out))
+        out = F.avg_pool2d(out, 8)
+        out = out.view(out.size(0), -1)
         return out
 
     def logits(self, x):
