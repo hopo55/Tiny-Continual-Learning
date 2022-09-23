@@ -106,8 +106,8 @@ def run(seed):
                       'schedule': [1, 2, 3, 4],
                       'schedule_type': 'decay',
                       'model_type': "tiny_resnet",
-                      'model_name': "resnet18_feature",
-                      'ood_model_name': 'resnet18_feature_dc',
+                      'model_name': "Reduced_ResNet18",
+                      'ood_model_name': 'Reduced_ResNet18_DC',
                       'out_dim': 100,
                       'optimizer': 'SGD',
                       'gpuid': [0],
@@ -122,7 +122,8 @@ def run(seed):
                       'num_labeled_samples': labeled_samples,
                       'num_unlabeled_samples': unlabeled_task_samples,
                       'super_flag': l_dist == "super",
-                      'no_unlabeled_data': False
+                      'no_unlabeled_data': False,
+                      'last': None
                       }
 
     learner = learners.tiny_distillmatch.DistillMatch(learner_config)
