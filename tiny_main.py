@@ -115,7 +115,7 @@ def run(seed):
                       'pl_flag': True, # use pseudo-labeled ul data for DM
                       'fm_loss': True, # Use fix-match loss with classifier -> Consistency Regularization / eq.4 -> unsupervised loss
                       'weight_aux': 1.0,
-                      'memory': 4000,
+                      'memory': 400,
                       'distill_loss': 'C',
                       'co': 1., # out-of-distribution confidence loss ratio
                       'FT': True, # finetune distillation -> 이거 필요한가???
