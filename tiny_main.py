@@ -105,7 +105,7 @@ def run(seed):
                     #   'schedule': [120, 160, 180, 200], # schedule and epoch(schedule[-1])
                       'schedule': [1, 2, 3, 4],
                       'schedule_type': 'decay',
-                      'model_type': "tiny_resnet",
+                      'model_type': "tiny_model",
                       'model_name': "Reduced_ResNet18",
                       'ood_model_name': 'Reduced_ResNet18_DC',
                       'out_dim': 100,

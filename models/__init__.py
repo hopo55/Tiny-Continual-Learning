@@ -1,2 +1,2 @@
 from . import resnet
-from . import tiny_resnet
+from . import tiny_model
