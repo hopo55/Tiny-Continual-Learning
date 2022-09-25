@@ -137,7 +137,7 @@ class iCIFAR10(data.Dataset):
         
         if self.l_dist == 'super':
             self.tasks = [] # Unique targets for each task        
-            if self.ul_dist == 'super' or self.ul_dist == 'neg': # not use
+            if self.ul_dist == 'super' or self.ul_dist == 'neg':
                 self.valid_ul = []
             shuffled_superclasses = list(self.super_to_mega.values())
             if self.ul_dist == 'neg': # not use

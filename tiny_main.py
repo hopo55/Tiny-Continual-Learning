@@ -73,9 +73,10 @@ def run(seed):
     validation = False
     repeat = 1
     
-    train_aug = True
+    train_aug = False
+    hard_aug = False
     train_transform = dataloaders.utils.get_transform(dataset=dataset, phase='train', aug=train_aug)
-    train_transformb = dataloaders.utils.get_transform(dataset=dataset, phase='train', aug=train_aug, hard_aug=True)
+    train_transformb = dataloaders.utils.get_transform(dataset=dataset, phase='train', aug=train_aug)
     test_transform  = dataloaders.utils.get_transform(dataset=dataset, phase='test', aug=train_aug)
 
     train_dataset = Dataset(dataroot, dataset, labeled_samples, unlabeled_task_samples, train=True, lab = True,
@@ -97,7 +98,7 @@ def run(seed):
     ul_batch_size = 128
     learner_config = {'num_classes': num_classes,
                       'lr': 0.1,
-                      'ul_batch_size': 128,
+                      'ul_batch_size': ul_batch_size,
                       'tpr': 0.05, # tpr for ood calibration of class network
                       'oodtpr': 0.05, # tpr for ood calibration of ood network
                       'momentum': 0.9,
@@ -158,9 +159,11 @@ def run(seed):
 
         # load dataset for task
         task = tasks_logits[i]
-        prev = sorted(set([k for task in tasks_logits[:i] for k in task])) # prev where classes learned so far are stored
+        # prev where classes learned so far are stored
+        # ex) frist task = [], second task = [0, 1, 2, 3, 4]
+        prev = sorted(set([k for task in tasks_logits[:i] for k in task])) 
 
-        # current class와 prev class 모두 load
+        # current class와 prev class all load
         train_dataset.load_dataset(prev, i, train=True)
         train_dataset_ul.load_dataset(prev, i, train=True)
         out_dim_add = len(task)
